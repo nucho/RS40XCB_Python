@@ -12,20 +12,21 @@ from rs40xcb_python import rs40xcb
 
 if __name__ == '__main__':
     # メインルーチン
-    servo = rs40xcb.RS40XCB(16,115200)
+    servo = rs40xcb.RS40XCB('/dev/ttyUSB0',115200)
+    #servo = rs40xcb.RS40XCB(0,115200)
     print'ID1のサーボのトルクをオン'
     servo.torque(1, 1)
-     
+    #time.sleep(1) # しばし待つ
     print '最高速度で100度の位置へ回転'
     servo.move(1, 1000,0)
-     
-    time.sleep(1) # しばし待つ
-     
+
+    time.sleep(1.5) # しばし待つ
+
     print '現在角度:%d' %servo.getAngle(1)
      
     print '1秒かけて0度の位置へ'
     servo.move(1,0,100)
      
-    time.sleep(1)
+    time.sleep(1.5)
 
     print '現在角度:%d' %servo.getAngle(1)
