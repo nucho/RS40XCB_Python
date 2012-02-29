@@ -16,6 +16,9 @@ class RS40XCB:
         stopbits=serial.STOPBITS_ONE,
         timeout=1)
 
+    def __del__( self ):
+        self.ser.close()
+
 #        print self.ser.portstr
 
     def move(self,sId,sPos,sTime):
@@ -88,9 +91,15 @@ class RS40XCB:
        
         """
         readbuf = self._getParam(sId);
-        param1 =  struct.unpack('H',(readbuf[8]+ '\00'))[0]
-        param2 =  struct.unpack('H',(readbuf[7]+ '\00'))[0]
-        return ((param1 << 8) & 0x0000FF00) | (param2 & 0x000000FF) 
+        param1 =  struct.unpack('B',(readbuf[8]))[0]
+        param2 =  struct.unpack('B',(readbuf[7]))[0]
+        
+        pos = (((param1 << 8) & 0xFF00) | ((param2) & 0x00FF))
+        
+        if pos > 1500:
+            pos = pos-65536
+
+        return pos
     
     def getTime(self,sId):
         """
@@ -98,9 +107,10 @@ class RS40XCB:
          移動が完了すると最後の時間を保持する
         """
         readbuf = self._getParam(sId);
-        param1 =  struct.unpack('H',(readbuf[10]+ '\00'))[0]
-        param2 =  struct.unpack('H',(readbuf[9]+ '\00'))[0]
-        return ((param1 << 8) & 0x0000FF00) | (param2 & 0x000000FF) 
+        param1 =  struct.unpack('B',(readbuf[10]))[0]
+        param2 =  struct.unpack('B',(readbuf[9]))[0]
+        
+        return ((param1 << 8) & 0xFF00) | ((param2) & 0x00FF)
     
     def getSpeed(self,sId):
         """
@@ -108,18 +118,20 @@ class RS40XCB:
          瞬間のスピードをあらわしている
         """
         readbuf = self._getParam(sId);
-        param1 =  struct.unpack('H',(readbuf[12]+ '\00'))[0]
-        param2 =  struct.unpack('H',(readbuf[11]+ '\00'))[0]
-        return ((param1 << 8) & 0x0000FF00) | (param2 & 0x000000FF) 
+        
+        param1 =  struct.unpack('B',(readbuf[12]))[0]
+        param2 =  struct.unpack('B',(readbuf[11]))[0]
+        
+        return ((param1 << 8) & 0xFF00) | ((param2) & 0x00FF)
         
     def getLoad(self,sId):
         """
         サーボの負荷をmA単位で得る
         """
         readbuf = self._getParam(sId);
-        param1 =  struct.unpack('H',(readbuf[14]+ '\00'))[0]
-        param2 =  struct.unpack('H',(readbuf[13]+ '\00'))[0]
-        return ((param1 << 8) & 0x0000FF00) | (param2 & 0x000000FF) 
+        param1 =  struct.unpack('B',(readbuf[14]))[0]
+        param2 =  struct.unpack('B',(readbuf[13]))[0]
+        return ((param1 << 8) & 0xFF00) | ((param2) & 0x00FF)
         
     def getTemperature(self,sId):
         """
@@ -128,9 +140,9 @@ class RS40XCB:
         一度温度による保護機能が働くと，サーボをリセットする必要がある
         """
         readbuf = self._getParam(sId);
-        param1 =  struct.unpack('H',(readbuf[16]+ '\00'))[0]
-        param2 =  struct.unpack('H',(readbuf[15]+ '\00'))[0]
-        return ((param1 << 8) & 0x0000FF00) | (param2 & 0x000000FF) 
+        param1 =  struct.unpack('B',(readbuf[16]))[0]
+        param2 =  struct.unpack('B',(readbuf[15]))[0]
+        return ((param1 << 8) & 0xFF00) | ((param2) & 0x00FF)
     
     def getVoltage(self,sId):
         """
@@ -138,9 +150,15 @@ class RS40XCB:
         およそ+-0.3V程度の誤差がある
         """
         readbuf = self._getParam(sId);
-        param1 =  struct.unpack('H',(readbuf[18]+ '\00'))[0]
-        param2 =  struct.unpack('H',(readbuf[17]+ '\00'))[0]
-        return ((param1 << 8) & 0x0000FF00) | (param2 & 0x000000FF) 
+        param1 =  struct.unpack('B',(readbuf[18]))[0]
+        param2 =  struct.unpack('B',(readbuf[17]))[0]
+        return ((param1 << 8) & 0xFF00) | ((param2) & 0x00FF)
+    
+    def close(self):
+        """
+        シリアルポートを閉じる.
+        """
+        self.ser.close()
     
     
     def _getParam(self,sId):
